@@ -166,7 +166,7 @@ def test_frames_with_note(mocker, watson):
          "My hovercraft is full of eels"]
     ])
 
-    mocker.patch('%s.open' % builtins, mocker.mock_open(read_data=content))
+    mocker.patch('builtins.open', mocker.mock_open(read_data=content))
     assert len(watson.frames) == 1
     frame = watson.frames['abcdefg']
     assert frame.id == 'abcdefg'
@@ -185,7 +185,7 @@ def test_frames_without_note(mocker, watson):
         [3621, 3630, 'foo', 'opqrstu', ['A', 'B', 'C'], 3630]
     ])
 
-    mocker.patch('%s.open' % builtins, mocker.mock_open(read_data=content))
+    mocker.patch('builtins.open', mocker.mock_open(read_data=content))
     assert len(watson.frames) == 3
     frame = watson.frames['abcdefg']
     assert frame.id == 'abcdefg'
