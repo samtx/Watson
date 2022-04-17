@@ -4,16 +4,17 @@ import arrow
 
 from collections import namedtuple
 
-HEADERS = ('start', 'stop', 'project', 'id', 'tags', 'updated_at')
+HEADERS = ('start', 'stop', 'project', 'id', 'tags', 'updated_at', 'note')
 
 
 class Frame(namedtuple('Frame', HEADERS)):
-    def __new__(cls, start, stop, project, id, tags=None, updated_at=None,):
+    def __new__(cls, start, stop, project, id, tags=None, updated_at=None,
+                note=None):
         try:
             if not isinstance(start, arrow.Arrow):
                 start = arrow.get(start)
 
-            if not isinstance(stop, arrow.Arrow):
+            if stop and not isinstance(stop, arrow.Arrow):
                 stop = arrow.get(stop)
 
             if updated_at is None:
@@ -25,21 +26,24 @@ class Frame(namedtuple('Frame', HEADERS)):
             raise WatsonError("Error converting date: {}".format(e))
 
         start = start.to('local')
-        stop = stop.to('local')
+
+        if stop:
+            stop = stop.to('local')
 
         if tags is None:
             tags = []
 
         return super(Frame, cls).__new__(
-            cls, start, stop, project, id, tags, updated_at
+            cls, start, stop, project, id, tags, updated_at, note
         )
 
     def dump(self):
-        start = self.start.to('utc').timestamp
-        stop = self.stop.to('utc').timestamp
-        updated_at = self.updated_at.timestamp
+        start = self.start.to('utc').int_timestamp
+        stop = self.stop.to('utc').int_timestamp if self.stop else None
+        updated_at = self.updated_at.int_timestamp
 
-        return (start, stop, self.project, self.id, self.tags, updated_at)
+        return (start, stop, self.project, self.id, self.tags, updated_at,
+                self.note)
 
     @property
     def day(self):
@@ -137,11 +141,11 @@ class Frames(object):
         return frame
 
     def new_frame(self, project, start, stop, tags=None, id=None,
-                  updated_at=None):
+                  updated_at=None, note=None):
         if not id:
             id = uuid.uuid4().hex
         return Frame(start, stop, project, id, tags=tags,
-                     updated_at=updated_at)
+                     updated_at=updated_at, note=note)
 
     def dump(self):
         return tuple(frame.dump() for frame in self._rows)
